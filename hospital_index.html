@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="HealthCare+ Hospital Management System powered by IBM Mainframe — DB2, COBOL, and JCL for enterprise-grade healthcare.">
+    <title>HealthCare+ | Hospital Management System — IBM Mainframe Edition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0f172a; }
+        .hero-gradient {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4c1d95 70%, #6d28d9 100%);
+        }
+        .mf-badge {
+            background: linear-gradient(90deg, rgba(99,102,241,0.25), rgba(139,92,246,0.25));
+            border: 1px solid rgba(167,139,250,0.4);
+            backdrop-filter: blur(6px);
+        }
+        .tech-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s;
+        }
+        .tech-card:hover {
+            transform: translateY(-5px);
+            background: rgba(139,92,246,0.15);
+            border-color: rgba(167,139,250,0.5);
+        }
+        .nav-glass {
+            background: rgba(255,255,255,0.97);
+            border-bottom: 2px solid rgba(99,102,241,0.12);
+        }
+        .modal-backdrop { background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); }
+        .modal-card {
+            background: #1e1b4b;
+            border: 1px solid rgba(167,139,250,0.3);
+            color: #e2e8f0;
+        }
+        .form-input {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(167,139,250,0.3);
+            color: #e2e8f0;
+            border-radius: 0.75rem;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.2);
+        }
+        .form-input option { background: #1e1b4b; color: #e2e8f0; }
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: white;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover { background: linear-gradient(135deg, #6d28d9, #5b21b6); transform: translateY(-1px); }
+        .role-btn {
+            border: 2px solid rgba(167,139,250,0.3);
+            border-radius: 0.75rem;
+            color: #a5b4fc;
+            transition: all 0.2s;
+        }
+        .role-btn.active, .role-btn:hover {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: white;
+            border-color: transparent;
+        }
+        @keyframes floatUp { 0%{opacity:0;transform:translateY(20px)} 100%{opacity:1;transform:translateY(0)} }
+        .float-in { animation: floatUp 0.5s ease forwards; }
+        @keyframes pulse-glow { 0%,100%{box-shadow:0 0 10px rgba(124,58,237,0.2)} 50%{box-shadow:0 0 25px rgba(124,58,237,0.5)} }
+        .mf-badge { animation: pulse-glow 3s infinite; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav-glass shadow-lg sticky top-0 z-40">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl font-extrabold bg-gradient-to-r from-violet-600 to-purple-700 bg-clip-text text-transparent">🏥 HealthCare+</span>
+                    <span class="hidden md:inline-flex items-center gap-1 text-xs font-bold text-violet-700 bg-violet-50 border border-violet-200 rounded-full px-3 py-1 tracking-wide">
+                        🖥️ IBM Mainframe Edition
+                    </span>
+                </div>
+                <div class="flex gap-3">
+                    <button id="nav-login-btn" onclick="showLogin()" class="px-5 py-2 text-purple-700 font-semibold hover:text-purple-900 transition-colors">Login</button>
+                    <button id="nav-register-btn" onclick="showRegister()" class="px-6 py-2 bg-gradient-to-r from-violet-600 to-purple-700 text-white rounded-xl font-semibold hover:from-violet-700 hover:to-purple-800 transition-all shadow-lg shadow-violet-200">Register</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-gradient text-white py-28 relative overflow-hidden">
+        <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-violet-600 opacity-10 blur-3xl"></div>
+        <div class="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-purple-400 opacity-10 blur-3xl"></div>
+        <div class="container mx-auto px-6 text-center relative z-10 float-in">
+            <div class="mf-badge inline-flex items-center gap-2 rounded-full px-5 py-2 mb-8 text-sm font-bold text-violet-200 tracking-widest uppercase">
+                <span>🖥️</span>
+                <span>Powered by IBM Mainframe — DB2 · COBOL · JCL · z/OS</span>
+            </div>
+            <h1 class="text-5xl md:text-6xl font-extrabold mb-5 leading-tight">Welcome to <span class="text-violet-300">HealthCare+</span></h1>
+            <p class="text-xl text-violet-200 mb-3 max-w-2xl mx-auto font-medium">Your Complete Enterprise Hospital Management Solution</p>
+            <p class="text-base text-violet-300 mb-12 max-w-xl mx-auto">Book appointments, manage medical records, and access healthcare services — backed by <strong>99.999% uptime</strong> IBM Mainframe reliability</p>
+            <div class="flex justify-center gap-4 flex-wrap">
+                <button id="hero-get-started-btn" onclick="showRegister()" class="px-10 py-4 bg-white text-purple-700 rounded-2xl font-bold hover:bg-violet-50 transition-all shadow-2xl text-lg">Get Started</button>
+                <button id="hero-signin-btn" onclick="showLogin()" class="px-10 py-4 border-2 border-white/50 text-white rounded-2xl font-bold hover:bg-white/10 transition-all text-lg">Sign In</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mainframe Tech Stack Section -->
+    <section class="bg-slate-900 py-20">
+        <div class="container mx-auto px-6">
+            <h2 class="text-center text-3xl font-extrabold text-white mb-3">Enterprise Mainframe Architecture</h2>
+            <p class="text-center text-slate-400 mb-12 max-w-2xl mx-auto">This system is built on IBM Mainframe technology — the same infrastructure trusted by banks, airlines, and healthcare providers worldwide</p>
+            <div class="grid md:grid-cols-4 gap-6">
+                <div class="tech-card rounded-2xl p-7 text-center text-white">
+                    <div class="text-5xl mb-4">🗄️</div>
+                    <h3 class="font-bold text-lg mb-2">IBM DB2 z/OS</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">9 dedicated tablespaces, row-level locking, image copy backups, RUNSTATS optimizer</p>
+                </div>
+                <div class="tech-card rounded-2xl p-7 text-center text-white">
+                    <div class="text-5xl mb-4">📟</div>
+                    <h3 class="font-bold text-lg mb-2">COBOL Programs</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">HMSAUTH · HMSAPPT · HMSADMIN — replaces C++ OOP classes with DB2-embedded business logic</p>
+                </div>
+                <div class="tech-card rounded-2xl p-7 text-center text-white">
+                    <div class="text-5xl mb-4">📋</div>
+                    <h3 class="font-bold text-lg mb-2">JCL Batch Jobs</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">HMSBATCH: Daily reports, billing updates, statistics, DB2 RUNSTATS, tape IMAGE COPY</p>
+                </div>
+                <div class="tech-card rounded-2xl p-7 text-center text-white">
+                    <div class="text-5xl mb-4">🌐</div>
+                    <h3 class="font-bold text-lg mb-2">Node.js Bridge</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">REST API gateway to DB2 via ibm_db (production) · SQLite simulation (development)</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="bg-slate-800 py-20">
+        <div class="container mx-auto px-6">
+            <h2 class="text-center text-3xl font-extrabold text-white mb-12">Three Portals, One Mainframe</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-slate-700/50 border border-slate-600 rounded-2xl p-8 hover:border-violet-500 transition-colors">
+                    <div class="text-4xl mb-4">👤</div>
+                    <h3 class="text-xl font-bold text-white mb-3">Patient Portal</h3>
+                    <ul class="text-slate-400 space-y-2 text-sm">
+                        <li>📅 Book appointments with any doctor</li>
+                        <li>💊 View prescriptions &amp; health records</li>
+                        <li>📊 Dashboard statistics</li>
+                        <li>💬 Submit feedback to administration</li>
+                    </ul>
+                </div>
+                <div class="bg-slate-700/50 border border-slate-600 rounded-2xl p-8 hover:border-violet-500 transition-colors">
+                    <div class="text-4xl mb-4">👨‍⚕️</div>
+                    <h3 class="text-xl font-bold text-white mb-3">Doctor Portal</h3>
+                    <ul class="text-slate-400 space-y-2 text-sm">
+                        <li>📋 Manage today's appointments</li>
+                        <li>✅ Update appointment status</li>
+                        <li>💊 Add prescriptions for patients</li>
+                        <li>📊 Dashboard with daily stats</li>
+                    </ul>
+                </div>
+                <div class="bg-slate-700/50 border border-slate-600 rounded-2xl p-8 hover:border-violet-500 transition-colors">
+                    <div class="text-4xl mb-4">🏥</div>
+                    <h3 class="text-xl font-bold text-white mb-3">Admin Panel</h3>
+                    <ul class="text-slate-400 space-y-2 text-sm">
+                        <li>📊 Hospital overview &amp; live stats</li>
+                        <li>🛏️ Ward management (ICU, General, Emergency)</li>
+                        <li>👥 Staff management</li>
+                        <li>📬 View patient feedback</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 text-white py-14 border-t border-slate-800">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4 text-violet-300">🏥 HealthCare+</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Enterprise hospital management powered by IBM Mainframe — the most reliable platform in computing history.</p>
+                    <div class="mt-4 text-xs text-slate-500 font-mono bg-slate-900 rounded-lg p-3 leading-relaxed">
+                        DB: IBM DB2 z/OS<br>
+                        PROG: COBOL (HMSAUTH/APPT/ADMIN)<br>
+                        BATCH: JCL (HMSBATCH)<br>
+                        API: Node.js → ibm_db
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-base font-bold mb-4 text-slate-300">Quick Links</h4>
+                    <ul class="space-y-2 text-slate-400 text-sm">
+                        <li><a href="#" class="hover:text-violet-300 transition">Home</a></li>
+                        <li><a href="#" onclick="showLogin(); return false;" class="hover:text-violet-300 transition">Login</a></li>
+                        <li><a href="#" onclick="showRegister(); return false;" class="hover:text-violet-300 transition">Register</a></li>
+                        <li><a href="WHY_MAINFRAME.md" class="hover:text-violet-300 transition">Why Mainframe?</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-base font-bold mb-4 text-slate-300">Services</h4>
+                    <ul class="space-y-2 text-slate-400 text-sm">
+                        <li>Emergency Care</li>
+                        <li>Outpatient Services</li>
+                        <li>Laboratory Tests</li>
+                        <li>Pharmacy</li>
+                        <li>Diagnostics</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-base font-bold mb-4 text-slate-300">Contact Us</h4>
+                    <ul class="space-y-3 text-slate-400 text-sm">
+                        <li class="flex items-start gap-2"><span>📍</span><span>123 Medical Center Drive<br>VIT Campus, Vellore<br>Tamil Nadu - 632014</span></li>
+                        <li class="flex items-center gap-2"><span>📞</span><span>+91 416-220-2000</span></li>
+                        <li class="flex items-center gap-2"><span>✉️</span><span>info@healthcareplus.com</span></li>
+                        <li class="flex items-center gap-2"><span>🕒</span><span>24/7 Emergency Services</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-slate-800 mt-10 pt-8 text-center text-slate-500 text-sm">
+                <p>&copy; 2026 HealthCare+ Hospital Management System. All rights reserved.</p>
+                <p class="mt-2">Built with 🖥️ IBM Mainframe — DB2 · COBOL · JCL · z/OS | VIT University</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center z-50">
+        <div class="modal-card rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Sign In</h2>
+                    <p class="text-xs text-violet-400 mt-1 font-mono">HMSAUTH: LOGIN-*-PARA → DB2</p>
+                </div>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-3xl leading-none transition">&times;</button>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-semibold mb-3 text-slate-300">Select Role</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="selectRole('patient')" id="role-patient" class="role-btn px-3 py-2 text-sm font-semibold">Patient</button>
+                    <button onclick="selectRole('doctor')" id="role-doctor" class="role-btn px-3 py-2 text-sm font-semibold">Doctor</button>
+                    <button onclick="selectRole('admin')" id="role-admin" class="role-btn px-3 py-2 text-sm font-semibold">Admin</button>
+                </div>
+            </div>
+
+            <form onsubmit="handleLogin(event)">
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold mb-2 text-slate-300">Email / Username</label>
+                    <input type="text" id="loginEmail" required class="form-input w-full px-4 py-3">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold mb-2 text-slate-300">Password</label>
+                    <div class="relative">
+                        <input type="password" id="loginPassword" required minlength="6" class="form-input w-full px-4 py-3 pr-12">
+                        <button type="button" onclick="togglePasswordVisibility('loginPassword', 'loginEye')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-300 transition">
+                            <span id="loginEye">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">Minimum 6 characters</p>
+                </div>
+                <div id="loginError" class="hidden mb-4 p-3 bg-red-900/40 border border-red-700 text-red-300 rounded-xl text-sm"></div>
+                <button type="submit" id="login-submit-btn" class="btn-primary w-full py-3 text-base">Sign In</button>
+            </form>
+            <p class="mt-4 text-center text-sm text-slate-400">
+                Don't have an account?
+                <button onclick="showRegisterFromLogin()" class="text-violet-400 font-semibold hover:underline">Register here</button>
+            </p>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center z-50">
+        <div class="modal-card rounded-2xl p-8 max-w-md w-full mx-4 max-h-screen overflow-y-auto shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Patient Registration</h2>
+                    <p class="text-xs text-violet-400 mt-1 font-mono">HMSAUTH: PROCESS-REGISTER-PARA → DB2</p>
+                </div>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-3xl leading-none transition">&times;</button>
+            </div>
+
+            <form onsubmit="handleRegister(event)">
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold mb-2 text-slate-300">Full Name</label>
+                    <input type="text" id="regName" required class="form-input w-full px-4 py-3">
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-300">Age</label>
+                        <input type="number" id="regAge" required min="1" max="120" class="form-input w-full px-4 py-3">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-300">Gender</label>
+                        <select id="regGender" required class="form-input w-full px-4 py-3">
+                            <option value="">Select</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold mb-2 text-slate-300">Contact Number</label>
+                    <input type="tel" id="regContact" required class="form-input w-full px-4 py-3">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold mb-2 text-slate-300">Email</label>
+                    <input type="email" id="regEmail" required class="form-input w-full px-4 py-3">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold mb-2 text-slate-300">Password</label>
+                    <div class="relative">
+                        <input type="password" id="regPassword" required class="form-input w-full px-4 py-3 pr-12">
+                        <button type="button" onclick="togglePasswordVisibility('regPassword', 'regEye')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-300 transition">
+                            <span id="regEye">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+                <div id="registerError" class="hidden mb-4 p-3 bg-red-900/40 border border-red-700 text-red-300 rounded-xl text-sm"></div>
+                <button type="submit" id="register-submit-btn" class="btn-primary w-full py-3 text-base">Create Account</button>
+            </form>
+            <p class="mt-4 text-center text-sm text-slate-400">
+                Already have an account?
+                <button onclick="showLoginFromRegister()" class="text-violet-400 font-semibold hover:underline">Login here</button>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080/api';
+        let selectedRole = 'patient';
+
+        function closeModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('registerModal').classList.add('hidden');
+        }
+
+        function showLoginFromRegister() { showLogin(); }
+        function showRegisterFromLogin() { showRegister(); }
+
+        function selectRole(role) {
+            selectedRole = role;
+            document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`role-${role}`).classList.add('active');
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('loginError').classList.add('hidden');
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, role: selectedRole })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    sessionStorage.setItem('user', JSON.stringify(data.user));
+                    sessionStorage.setItem('role', data.role);
+                    if (selectedRole === 'patient') window.location.href = 'patient.html';
+                    else if (selectedRole === 'doctor') window.location.href = 'doctor.html';
+                    else if (selectedRole === 'admin') window.location.href = 'admin.html';
+                } else {
+                    showError('loginError', data.error || 'Login failed');
+                }
+            } catch (error) {
+                showError('loginError', 'Connection error. Ensure the server is running on port 8080.');
+            }
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+            const data = {
+                name: document.getElementById('regName').value,
+                age: parseInt(document.getElementById('regAge').value),
+                gender: document.getElementById('regGender').value,
+                contact: document.getElementById('regContact').value,
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPassword').value
+            };
+            try {
+                const response = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert('Registration successful! You can now login.');
+                    event.target.reset();
+                    showLogin();
+                } else {
+                    showError('registerError', result.error || 'Registration failed');
+                }
+            } catch (error) {
+                showError('registerError', 'Connection error. Please try again.');
+            }
+        }
+
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 5000);
+        }
+
+        function togglePasswordVisibility(inputId, eyeId) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        function showRegister() {
+            const form = document.querySelector('#registerModal form');
+            if (form) form.reset();
+            document.getElementById('registerModal').classList.remove('hidden');
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('registerError').classList.add('hidden');
+        }
+
+        function showLogin() {
+            const form = document.querySelector('#loginModal form');
+            if (form) form.reset();
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('registerModal').classList.add('hidden');
+            document.getElementById('loginError').classList.add('hidden');
+        }
+
+        // Initialize
+        selectRole('patient');
+
+        // Close modals on backdrop click
+        ['loginModal', 'registerModal'].forEach(id => {
+            document.getElementById(id).addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+        });
+    </script>
+</body>
+</html>

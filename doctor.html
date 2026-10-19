@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Doctor Portal — HealthCare+ Mainframe HMS">
+    <title>Doctor Dashboard — HealthCare+ | IBM Mainframe HMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0f172a; color: #e2e8f0; }
+        .nav-bar { background: #0c1445; border-bottom: 2px solid rgba(59,130,246,0.3); }
+        .card { background: #1e293b; border: 1px solid rgba(59,130,246,0.15); border-radius: 1rem; }
+        .card-hover { transition: border-color 0.2s, transform 0.2s; }
+        .card-hover:hover { border-color: rgba(59,130,246,0.5); transform: translateY(-2px); }
+        .tab-btn { color: #94a3b8; border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .tab-btn.active { color: #60a5fa; border-color: #2563eb; }
+        .stat-card { background: linear-gradient(135deg, #1e293b, #0c1445); border: 1px solid rgba(59,130,246,0.2); border-radius: 1rem; }
+        .form-input { background: rgba(255,255,255,0.05); border: 1px solid rgba(59,130,246,0.3); color: #e2e8f0; border-radius: 0.75rem; }
+        .form-input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+        .btn-primary { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border-radius: 0.75rem; font-weight: 600; transition: all 0.2s; }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-danger { background: #dc2626; color: white; border-radius: 0.75rem; font-weight: 600; transition: all 0.2s; }
+        .btn-success { background: #059669; color: white; border-radius: 0.75rem; font-weight: 600; transition: all 0.2s; }
+        .badge-scheduled { background: rgba(59,130,246,0.2); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+        .badge-completed { background: rgba(16,185,129,0.2); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+        .badge-cancelled { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+        .mf-tag { font-size: 0.65rem; font-family: monospace; color: #2563eb; background: rgba(37,99,235,0.1); border: 1px solid rgba(37,99,235,0.2); border-radius: 0.375rem; padding: 1px 6px; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav-bar sticky top-0 z-40">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="text-xl font-extrabold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">🏥 HealthCare+</span>
+                <span class="text-slate-500 text-sm">|</span>
+                <span class="text-slate-300 text-sm font-medium">Doctor Portal</span>
+                <span class="mf-tag">HMSAPPT.cbl</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="userName" class="text-slate-300 font-semibold text-sm"></span>
+                <button onclick="logout()" class="btn-danger px-4 py-2 text-sm">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- Tab Navigation -->
+        <div class="mb-8 flex flex-wrap gap-1 border-b border-slate-700">
+            <button onclick="showTab('dashboard')" id="tab-dashboard" class="tab-btn active px-6 py-3 font-semibold text-sm">📊 Dashboard</button>
+            <button onclick="showTab('appointments')" id="tab-appointments" class="tab-btn px-6 py-3 font-semibold text-sm">📅 Appointments</button>
+            <button onclick="showTab('prescriptions')" id="tab-prescriptions" class="tab-btn px-6 py-3 font-semibold text-sm">💊 Prescriptions</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="content-dashboard" class="tab-content">
+            <h2 class="text-3xl font-bold mb-2">Welcome, Dr. <span id="dashUserName" class="text-blue-400"></span>!</h2>
+            <p class="text-slate-400 text-sm mb-8 font-mono">GET-DOC-APPTS-PARA → DOC-APPT-CUR → HMS.APPOINTMENTS (DB2)</p>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <div class="stat-card p-6 card-hover">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-full bg-blue-500/20 flex items-center justify-center text-2xl">📅</div>
+                        <div>
+                            <p class="text-slate-400 text-sm">Today's Appointments</p>
+                            <p id="todayCount" class="text-4xl font-extrabold text-blue-400">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card p-6 card-hover">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center text-2xl">✅</div>
+                        <div>
+                            <p class="text-slate-400 text-sm">Completed</p>
+                            <p id="completedCount" class="text-4xl font-extrabold text-emerald-400">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card p-6 card-hover">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-full bg-violet-500/20 flex items-center justify-center text-2xl">⏳</div>
+                        <div>
+                            <p class="text-slate-400 text-sm">Scheduled</p>
+                            <p id="scheduledCount" class="text-4xl font-extrabold text-violet-400">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-6">
+                <h3 class="text-lg font-bold mb-4 text-slate-200">My Profile</h3>
+                <div class="grid md:grid-cols-2 gap-4 text-sm">
+                    <div class="bg-slate-900/60 rounded-xl p-4">
+                        <span class="text-slate-400">Specialization</span>
+                        <p id="docSpec" class="font-semibold text-slate-200 mt-1"></p>
+                    </div>
+                    <div class="bg-slate-900/60 rounded-xl p-4">
+                        <span class="text-slate-400">Department</span>
+                        <p id="docDept" class="font-semibold text-slate-200 mt-1"></p>
+                    </div>
+                    <div class="bg-slate-900/60 rounded-xl p-4">
+                        <span class="text-slate-400">Contact</span>
+                        <p id="docContact" class="font-semibold text-slate-200 mt-1"></p>
+                    </div>
+                    <div class="bg-slate-900/60 rounded-xl p-4">
+                        <span class="text-slate-400">Email</span>
+                        <p id="docEmail" class="font-semibold text-slate-200 mt-1"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Appointments Tab -->
+        <div id="content-appointments" class="tab-content hidden">
+            <h2 class="text-3xl font-bold mb-2">My Appointments</h2>
+            <p class="text-slate-400 text-sm mb-6 font-mono">COBOL: GET-DOC-APPTS-PARA, UPDATE-APPT-PARA → HMS.APPOINTMENTS (DB2)</p>
+
+            <div class="mb-4 flex flex-wrap gap-3">
+                <button onclick="filterAppointments('all')" id="filter-all" class="filter-btn px-4 py-2 btn-primary text-sm">All</button>
+                <button onclick="filterAppointments('SCHEDULED')" id="filter-scheduled" class="filter-btn px-4 py-2 bg-blue-900/40 border border-blue-700/40 text-blue-300 rounded-xl text-sm hover:bg-blue-800/50 transition">Scheduled</button>
+                <button onclick="filterAppointments('COMPLETED')" id="filter-completed" class="filter-btn px-4 py-2 bg-emerald-900/40 border border-emerald-700/40 text-emerald-300 rounded-xl text-sm hover:bg-emerald-800/50 transition">Completed</button>
+            </div>
+
+            <div id="appointmentsList" class="space-y-4">
+                <p class="text-slate-500">Loading appointments...</p>
+            </div>
+        </div>
+
+        <!-- Prescriptions Tab -->
+        <div id="content-prescriptions" class="tab-content hidden">
+            <h2 class="text-3xl font-bold mb-2">Add Prescription</h2>
+            <p class="text-slate-400 text-sm mb-6 font-mono">COBOL: ADD-PRESC-PARA → HMS.PRESCRIPTIONS (DB2)</p>
+
+            <div class="card p-6 mb-6 max-w-2xl">
+                <form onsubmit="addPrescription(event)" class="space-y-4">
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold mb-2 text-slate-300">Appointment ID</label>
+                            <input type="number" id="prescAppId" required class="form-input w-full px-4 py-3" placeholder="Enter appointment ID">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-2 text-slate-300">Patient ID</label>
+                            <input type="number" id="prescPatientId" required class="form-input w-full px-4 py-3" placeholder="Enter patient ID">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-300">Medicine</label>
+                        <input type="text" id="prescMedicine" required class="form-input w-full px-4 py-3" placeholder="e.g. Amoxicillin 500mg">
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold mb-2 text-slate-300">Dosage</label>
+                            <input type="text" id="prescDosage" required class="form-input w-full px-4 py-3" placeholder="e.g. 1 tablet twice daily">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-2 text-slate-300">Duration</label>
+                            <input type="text" id="prescDuration" required class="form-input w-full px-4 py-3" placeholder="e.g. 7 days">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-300">Diagnosis</label>
+                        <input type="text" id="prescDiagnosis" class="form-input w-full px-4 py-3" placeholder="e.g. Upper respiratory infection">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-300">Notes (optional)</label>
+                        <textarea id="prescNotes" rows="3" class="form-input w-full px-4 py-3" placeholder="Any additional notes..."></textarea>
+                    </div>
+                    <button type="submit" id="add-presc-btn" class="btn-primary px-8 py-3 text-sm">Add Prescription</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="statusMessage" class="fixed bottom-4 right-4 hidden p-4 rounded-xl shadow-2xl text-sm font-semibold max-w-xs z-50"></div>
+
+    <script>
+        const API_URL = 'http://localhost:8080/api';
+        let currentUser = null;
+        let allAppointments = [];
+
+        function checkAuth() {
+            const user = sessionStorage.getItem('user');
+            const role = sessionStorage.getItem('role');
+            if (!user || role !== 'doctor') {
+                window.location.href = 'hospital_index.html';
+                return;
+            }
+            currentUser = JSON.parse(user);
+            document.getElementById('userName').textContent = 'Dr. ' + currentUser.name;
+            document.getElementById('dashUserName').textContent = currentUser.name;
+            loadProfile();
+            loadDoctorAppointments();
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'hospital_index.html';
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`content-${tabName}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            if (tabName === 'appointments') loadDoctorAppointments();
+        }
+
+        async function loadProfile() {
+            try {
+                const profile = await fetch(`${API_URL}/doctor/profile?doctor_id=${currentUser.id}`).then(r => r.json());
+                document.getElementById('docSpec').textContent = profile.specialization || currentUser.specialization || 'N/A';
+                document.getElementById('docDept').textContent = profile.department || currentUser.department || 'N/A';
+                document.getElementById('docContact').textContent = profile.contact || 'N/A';
+                document.getElementById('docEmail').textContent = profile.email || currentUser.email || 'N/A';
+            } catch (error) { console.error('Profile load error:', error); }
+        }
+
+        async function loadDoctorAppointments() {
+            try {
+                allAppointments = await fetch(`${API_URL}/doctor/appointments?doctor_id=${currentUser.id}`).then(r => r.json());
+                const today = new Date().toISOString().split('T')[0];
+                const todayAppts = allAppointments.filter(a => a.date === today);
+                const completed = allAppointments.filter(a => (a.status || '').toUpperCase() === 'COMPLETED');
+                const scheduled = allAppointments.filter(a => (a.status || '').toUpperCase() === 'SCHEDULED');
+                document.getElementById('todayCount').textContent = todayAppts.length;
+                document.getElementById('completedCount').textContent = completed.length;
+                document.getElementById('scheduledCount').textContent = scheduled.length;
+                renderAppointments(allAppointments);
+            } catch (error) { console.error('Appointments load error:', error); }
+        }
+
+        function filterAppointments(filter) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('btn-primary'));
+            document.getElementById(`filter-${filter === 'all' ? 'all' : filter.toLowerCase()}`).classList.add('btn-primary');
+            const filtered = filter === 'all' ? allAppointments :
+                allAppointments.filter(a => (a.status || '').toUpperCase() === filter.toUpperCase());
+            renderAppointments(filtered);
+        }
+
+        function renderAppointments(appointments) {
+            const list = document.getElementById('appointmentsList');
+            if (!Array.isArray(appointments) || appointments.length === 0) {
+                list.innerHTML = '<p class="text-slate-500">No appointments found.</p>';
+                return;
+            }
+            list.innerHTML = appointments.map(app => `
+                <div class="card p-5">
+                    <div class="flex justify-between items-start gap-4">
+                        <div>
+                            <div class="flex items-center gap-3 mb-1">
+                                <h4 class="font-bold text-slate-200">${app.patient_name || 'N/A'}</h4>
+                                <span class="text-xs text-slate-500">ID: ${app.patient_id}</span>
+                            </div>
+                            <p class="text-sm text-slate-400">📅 ${app.date} at ${app.time} | 📞 ${app.contact || 'N/A'}</p>
+                            ${app.notes ? `<p class="text-sm text-slate-400 mt-2"><strong>Notes:</strong> ${app.notes}</p>` : ''}
+                        </div>
+                        <div class="flex flex-col items-end gap-3">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold ${
+                                (app.status||'').toUpperCase() === 'COMPLETED' ? 'badge-completed' :
+                                (app.status||'').toUpperCase() === 'CANCELLED' ? 'badge-cancelled' :
+                                'badge-scheduled'
+                            }">${(app.status || 'SCHEDULED').toUpperCase()}</span>
+                            ${(app.status || '').toUpperCase() === 'SCHEDULED' ? `
+                            <div class="flex gap-2">
+                                <button onclick="updateStatus(${app.id}, 'COMPLETED')" class="btn-success px-3 py-1 text-xs">Complete</button>
+                                <button onclick="updateStatus(${app.id}, 'CANCELLED')" class="btn-danger px-3 py-1 text-xs">Cancel</button>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function updateStatus(appointmentId, status) {
+            try {
+                const result = await fetch(`${API_URL}/appointment/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ appointment_id: appointmentId, status, notes: '' })
+                }).then(r => r.json());
+                if (result.success) {
+                    showStatus(`Appointment marked as ${status}`);
+                    loadDoctorAppointments();
+                } else {
+                    showStatus('Update failed', true);
+                }
+            } catch (error) { showStatus('Error updating appointment', true); }
+        }
+
+        async function addPrescription(event) {
+            event.preventDefault();
+            const data = {
+                appointment_id: parseInt(document.getElementById('prescAppId').value),
+                patient_id: parseInt(document.getElementById('prescPatientId').value),
+                doctor_id: currentUser.id,
+                medicine: document.getElementById('prescMedicine').value,
+                dosage: document.getElementById('prescDosage').value,
+                duration: document.getElementById('prescDuration').value,
+                diagnosis: document.getElementById('prescDiagnosis').value || '',
+                notes: document.getElementById('prescNotes').value || ''
+            };
+            try {
+                const result = await fetch(`${API_URL}/prescription/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                }).then(r => r.json());
+                if (result.success) {
+                    showStatus('Prescription added successfully!');
+                    event.target.reset();
+                } else {
+                    showStatus(result.error || 'Failed to add prescription', true);
+                }
+            } catch (error) { showStatus('Error adding prescription', true); }
+        }
+
+        function showStatus(message, isError = false) {
+            const el = document.getElementById('statusMessage');
+            el.textContent = message;
+            el.className = `fixed bottom-4 right-4 p-4 rounded-xl shadow-2xl text-sm font-semibold max-w-xs z-50 ${isError ? 'bg-red-600 text-white' : 'bg-emerald-600 text-white'}`;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', checkAuth);
+    </script>
+</body>
+</html>

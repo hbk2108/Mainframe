@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Patient Portal — HealthCare+ Mainframe HMS">
+    <title>Patient Dashboard — HealthCare+ | IBM Mainframe HMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0f172a; color: #e2e8f0; }
+        .nav-bar { background: #1e1b4b; border-bottom: 2px solid rgba(139,92,246,0.3); }
+        .card { background: #1e293b; border: 1px solid rgba(99,102,241,0.15); border-radius: 1rem; }
+        .card-hover { transition: border-color 0.2s, transform 0.2s; }
+        .card-hover:hover { border-color: rgba(139,92,246,0.5); transform: translateY(-2px); }
+        .tab-btn { color: #94a3b8; border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .tab-btn.active { color: #a78bfa; border-color: #7c3aed; }
+        .stat-card { background: linear-gradient(135deg, #1e293b, #1e1b4b); border: 1px solid rgba(99,102,241,0.2); border-radius: 1rem; }
+        .form-input {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(99,102,241,0.3);
+            color: #e2e8f0;
+            border-radius: 0.75rem;
+        }
+        .form-input:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+        .form-input option { background: #1e293b; }
+        .btn-primary { background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white; border-radius: 0.75rem; font-weight: 600; transition: all 0.2s; }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-danger { background: #dc2626; color: white; border-radius: 0.75rem; font-weight: 600; transition: all 0.2s; }
+        .btn-danger:hover { background: #b91c1c; }
+        .badge-scheduled { background: rgba(59,130,246,0.2); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+        .badge-completed { background: rgba(16,185,129,0.2); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+        .badge-cancelled { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+        .mf-tag { font-size: 0.65rem; font-family: monospace; color: #6d28d9; background: rgba(109,40,217,0.1); border: 1px solid rgba(109,40,217,0.2); border-radius: 0.375rem; padding: 1px 6px; }
+        #statusMessage { transition: all 0.3s; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav-bar sticky top-0 z-40">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="text-xl font-extrabold bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">🏥 HealthCare+</span>
+                <span class="text-slate-400 text-sm">|</span>
+                <span class="text-slate-300 text-sm font-medium">Patient Portal</span>
+                <span class="mf-tag">HMSAPPT.cbl</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="userName" class="text-slate-300 font-semibold text-sm"></span>
+                <button onclick="logout()" class="btn-danger px-4 py-2 text-sm">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- Tab Navigation -->
+        <div class="mb-8 flex flex-wrap gap-1 border-b border-slate-700">
+            <button onclick="showTab('dashboard')" id="tab-dashboard" class="tab-btn active px-6 py-3 font-semibold text-sm">📊 Dashboard</button>
+            <button onclick="showTab('appointments')" id="tab-appointments" class="tab-btn px-6 py-3 font-semibold text-sm">📅 Appointments</button>
+            <button onclick="showTab('records')" id="tab-records" class="tab-btn px-6 py-3 font-semibold text-sm">💊 Health Records</button>
+            <button onclick="showTab('feedback')" id="tab-feedback" class="tab-btn px-6 py-3 font-semibold text-sm">💬 Feedback</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="content-dashboard" class="tab-content">
+            <h2 class="text-3xl font-bold mb-2">Welcome back, <span id="dashUserName" class="text-violet-400"></span>!</h2>
+            <p class="text-slate-400 text-sm mb-8">Your health data is securely managed by IBM DB2 z/OS</p>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <div class="stat-card p-6 card-hover">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-full bg-violet-500/20 flex items-center justify-center text-2xl">📅</div>
+                        <div>
+                            <p class="text-slate-400 text-sm">Total Appointments</p>
+                            <p id="appointmentCount" class="text-4xl font-extrabold text-violet-400">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card p-6 card-hover">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center text-2xl">💊</div>
+                        <div>
+                            <p class="text-slate-400 text-sm">Prescriptions</p>
+                            <p id="prescriptionCount" class="text-4xl font-extrabold text-emerald-400">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-6">
+                <h3 class="text-lg font-bold mb-4 text-slate-200">Quick Actions</h3>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <button onclick="showTab('appointments')" class="btn-primary px-6 py-3 text-sm">📅 Book Appointment</button>
+                    <button onclick="showTab('records')" class="px-6 py-3 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl font-semibold text-sm transition-all">💊 View Health Records</button>
+                </div>
+            </div>
+
+            <!-- Mainframe info panel -->
+            <div class="mt-6 card p-4 border-violet-800/40">
+                <p class="text-xs text-slate-500 font-mono">
+                    Backend: <span class="text-violet-400">COBOL HMSAPPT.cbl</span> →
+                    Cursor: <span class="text-violet-400">PAT-APPT-CUR, PRESC-CUR</span> →
+                    DB: <span class="text-violet-400">HMS.APPOINTMENTS, HMS.PRESCRIPTIONS</span> (DB2 z/OS)
+                </p>
+            </div>
+        </div>
+
+        <!-- Appointments Tab -->
+        <div id="content-appointments" class="tab-content hidden">
+            <h2 class="text-3xl font-bold mb-2">Appointments</h2>
+            <p class="text-slate-400 text-sm mb-6 font-mono">COBOL: BOOK-APPT-PARA → HMS_APPOINTMENTS (DB2)</p>
+
+            <!-- Book New Appointment -->
+            <div class="card p-6 mb-6">
+                <h3 class="text-lg font-bold mb-5 text-slate-200">Book New Appointment</h3>
+                <form onsubmit="bookAppointment(event)" class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-300">Select Doctor</label>
+                        <select id="doctorSelect" required class="form-input w-full px-4 py-3">
+                            <option value="">Loading doctors...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-300">Date</label>
+                        <input type="date" id="appointmentDate" required class="form-input w-full px-4 py-3">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-300">Time</label>
+                        <select id="appointmentTime" required class="form-input w-full px-4 py-3">
+                            <option value="">Select time</option>
+                            <option value="09:00">09:00 AM</option>
+                            <option value="10:00">10:00 AM</option>
+                            <option value="11:00">11:00 AM</option>
+                            <option value="12:00">12:00 PM</option>
+                            <option value="14:00">02:00 PM</option>
+                            <option value="15:00">03:00 PM</option>
+                            <option value="16:00">04:00 PM</option>
+                            <option value="17:00">05:00 PM</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" id="book-appt-btn" class="btn-primary w-full px-6 py-3 text-sm">Book Appointment</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Appointments List -->
+            <div class="card p-6">
+                <h3 class="text-lg font-bold mb-5 text-slate-200">My Appointments</h3>
+                <div id="appointmentsList" class="space-y-4">
+                    <p class="text-slate-500">Loading appointments...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Health Records Tab -->
+        <div id="content-records" class="tab-content hidden">
+            <h2 class="text-3xl font-bold mb-2">Health Records &amp; Prescriptions</h2>
+            <p class="text-slate-400 text-sm mb-6 font-mono">COBOL: GET-PRESC-PARA → PRESC-CUR → HMS.PRESCRIPTIONS (DB2)</p>
+            <div class="card p-6">
+                <div id="prescriptionsList" class="space-y-6">
+                    <p class="text-slate-500">Loading prescriptions...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback Tab -->
+        <div id="content-feedback" class="tab-content hidden">
+            <h2 class="text-3xl font-bold mb-2">Feedback &amp; Support</h2>
+            <p class="text-slate-400 text-sm mb-6 font-mono">COBOL: ADD-FEEDBACK-PARA → HMS.FEEDBACK (DB2)</p>
+            <div class="card p-6 max-w-2xl">
+                <form onsubmit="submitFeedback(event)">
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold mb-2 text-slate-300">Your Message</label>
+                        <textarea id="feedbackMessage" required rows="6" class="form-input w-full px-4 py-3" placeholder="Share your feedback, concerns, or suggestions..."></textarea>
+                    </div>
+                    <button type="submit" id="feedback-submit-btn" class="btn-primary px-8 py-3 text-sm">Submit Feedback</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="statusMessage" class="fixed bottom-4 right-4 hidden p-4 rounded-xl shadow-2xl text-sm font-semibold max-w-xs z-50"></div>
+
+    <script>
+        const API_URL = 'http://localhost:8080/api';
+        let currentUser = null;
+
+        function checkAuth() {
+            const user = sessionStorage.getItem('user');
+            const role = sessionStorage.getItem('role');
+            if (!user || role !== 'patient') {
+                window.location.href = 'hospital_index.html';
+                return;
+            }
+            currentUser = JSON.parse(user);
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('dashUserName').textContent = currentUser.name;
+            loadDashboardData();
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'hospital_index.html';
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`content-${tabName}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            if (tabName === 'appointments') { loadDoctors(); loadAppointments(); }
+            else if (tabName === 'records') { loadPrescriptions(); }
+        }
+
+        async function loadDashboardData() {
+            try {
+                const [appointments, prescriptions] = await Promise.all([
+                    fetch(`${API_URL}/patient/appointments?patient_id=${currentUser.id}`).then(r => r.json()),
+                    fetch(`${API_URL}/patient/prescriptions?patient_id=${currentUser.id}`).then(r => r.json())
+                ]);
+                document.getElementById('appointmentCount').textContent = appointments.length || 0;
+                document.getElementById('prescriptionCount').textContent = prescriptions.length || 0;
+            } catch (error) { console.error('Dashboard load error:', error); }
+        }
+
+        async function loadDoctors() {
+            try {
+                const doctors = await fetch(`${API_URL}/doctors`).then(r => r.json());
+                const select = document.getElementById('doctorSelect');
+                select.innerHTML = '<option value="">Select a doctor</option>';
+                doctors.forEach(doc => {
+                    const opt = document.createElement('option');
+                    opt.value = doc.id;
+                    opt.textContent = `${doc.name} — ${doc.specialization}`;
+                    select.appendChild(opt);
+                });
+            } catch (error) { showStatus('Error loading doctors', true); }
+        }
+
+        async function loadAppointments() {
+            try {
+                const appointments = await fetch(`${API_URL}/patient/appointments?patient_id=${currentUser.id}`).then(r => r.json());
+                const list = document.getElementById('appointmentsList');
+                if (!Array.isArray(appointments) || appointments.length === 0) {
+                    list.innerHTML = '<p class="text-slate-500">No appointments found. Book your first appointment above!</p>';
+                    return;
+                }
+                list.innerHTML = appointments.map(app => `
+                    <div class="border rounded-xl p-4 ${
+                        app.status === 'COMPLETED' || app.status === 'completed' ? 'bg-emerald-900/20 border-emerald-700/30' :
+                        app.status === 'CANCELLED' || app.status === 'cancelled' ? 'bg-red-900/20 border-red-700/30' :
+                        'bg-blue-900/20 border-blue-700/30'
+                    }">
+                        <div class="flex justify-between items-start gap-4">
+                            <div>
+                                <h4 class="font-bold text-base text-slate-200">${app.doctor_name || 'N/A'}</h4>
+                                <p class="text-slate-400 text-sm">${app.specialization || ''}</p>
+                                <p class="text-sm text-slate-500 mt-2">📅 ${app.date} at ${app.time}</p>
+                                ${app.notes ? `<p class="text-sm mt-2 text-slate-400"><strong>Notes:</strong> ${app.notes}</p>` : ''}
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold shrink-0 ${
+                                (app.status === 'COMPLETED' || app.status === 'completed') ? 'badge-completed' :
+                                (app.status === 'CANCELLED' || app.status === 'cancelled') ? 'badge-cancelled' :
+                                'badge-scheduled'
+                            }">${(app.status || 'SCHEDULED').toUpperCase()}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                document.getElementById('appointmentsList').innerHTML = '<p class="text-red-400">Error loading appointments.</p>';
+            }
+        }
+
+        async function bookAppointment(event) {
+            event.preventDefault();
+            const data = {
+                patient_id: currentUser.id,
+                doctor_id: parseInt(document.getElementById('doctorSelect').value),
+                date: document.getElementById('appointmentDate').value,
+                time: document.getElementById('appointmentTime').value
+            };
+            try {
+                const result = await fetch(`${API_URL}/appointment/book`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                }).then(r => r.json());
+
+                if (result.success) {
+                    showStatus('Appointment booked successfully!');
+                    event.target.reset();
+                    setTimeout(() => { loadAppointments(); loadDashboardData(); }, 500);
+                } else {
+                    showStatus(result.error || 'Booking failed', true);
+                }
+            } catch (error) { showStatus('Error booking appointment', true); }
+        }
+
+        async function loadPrescriptions() {
+            try {
+                const prescriptions = await fetch(`${API_URL}/patient/prescriptions?patient_id=${currentUser.id}`).then(r => r.json());
+                const list = document.getElementById('prescriptionsList');
+                if (!Array.isArray(prescriptions) || prescriptions.length === 0) {
+                    list.innerHTML = '<p class="text-slate-500">No prescriptions found.</p>';
+                    return;
+                }
+                list.innerHTML = prescriptions.map(rx => `
+                    <div class="border-l-4 border-violet-500 bg-slate-800/50 p-5 rounded-r-xl">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-bold text-base text-slate-200">${rx.doctor_name}</h4>
+                                <p class="text-sm text-slate-500">${rx.date || ''} ${rx.time ? 'at ' + rx.time : ''}</p>
+                            </div>
+                        </div>
+                        ${rx.diagnosis ? `<p class="mb-3 text-slate-300 text-sm"><strong class="text-violet-400">Diagnosis:</strong> ${rx.diagnosis}</p>` : ''}
+                        <div class="bg-slate-900/60 p-4 rounded-xl mt-2">
+                            <p class="font-semibold text-sm text-emerald-400">💊 ${rx.medicine}</p>
+                            <p class="text-sm text-slate-400 mt-1">Dosage: ${rx.dosage}</p>
+                            <p class="text-sm text-slate-400">Duration: ${rx.duration}</p>
+                            ${rx.notes ? `<p class="text-sm text-slate-500 mt-2">Notes: ${rx.notes}</p>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                document.getElementById('prescriptionsList').innerHTML = '<p class="text-red-400">Error loading prescriptions.</p>';
+            }
+        }
+
+        async function submitFeedback(event) {
+            event.preventDefault();
+            const data = {
+                patient_id: currentUser.id,
+                message: document.getElementById('feedbackMessage').value
+            };
+            try {
+                const result = await fetch(`${API_URL}/feedback/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                }).then(r => r.json());
+
+                if (result.success) {
+                    showStatus('Feedback submitted successfully!');
+                    event.target.reset();
+                } else {
+                    showStatus(result.error || 'Submission failed', true);
+                }
+            } catch (error) { showStatus('Error submitting feedback', true); }
+        }
+
+        function showStatus(message, isError = false) {
+            const el = document.getElementById('statusMessage');
+            el.textContent = message;
+            el.className = `fixed bottom-4 right-4 p-4 rounded-xl shadow-2xl text-sm font-semibold max-w-xs z-50 ${isError ? 'bg-red-600 text-white' : 'bg-emerald-600 text-white'}`;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            const dateInput = document.getElementById('appointmentDate');
+            if (dateInput) dateInput.min = new Date().toISOString().split('T')[0];
+        });
+    </script>
+</body>
+</html>

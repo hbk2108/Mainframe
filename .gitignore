@@ -1,0 +1,29 @@
+# Environment variables
+.env
+
+# Database files
+*.db
+*.db-journal
+
+# Compiled executables
+*.exe
+*.out
+*.o
+*.obj
+
+# MySQL
+*.sql~
+
+# IDE
+.vscode/
+.vs/
+*.suo
+*.user
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+node_modules/
